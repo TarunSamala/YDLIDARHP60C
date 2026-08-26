@@ -1,0 +1,9 @@
+# Downloaded proprietary vendor SDK, compiled viewer, and generated files
+vendor/
+
+# Runtime logs and captured camera data
+*.log
+*.yuv
+*.pcd
+*.jpg
+
