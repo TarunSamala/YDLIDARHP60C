@@ -94,9 +94,25 @@ Ubuntu/Debian:
 sudo apt install cmake g++ binutils libopencv-dev libusb-1.0-0 usbutils v4l-utils curl xz-utils patch
 ```
 
-On Raspberry Pi OS, use the packages for the architecture installed on the
-system; no cross-compiler is needed when building directly on the Pi. The
-first build selects the matching vendor libraries automatically:
+For Raspberry Pi OS, install the complete build and camera toolchain:
+
+```bash
+sudo apt update && sudo apt install -y \
+  build-essential cmake binutils pkg-config \
+  libopencv-dev libusb-1.0-0-dev \
+  v4l-utils usbutils \
+  curl xz-utils tar patch git \
+  libx11-dev
+```
+
+Add the user to the camera groups, then log out and back in:
+
+```bash
+sudo usermod -aG video,plugdev "$USER"
+```
+
+No cross-compiler is needed when building directly on the Pi. The first build
+selects the matching vendor libraries automatically:
 `aarch64-linux-gnu` for 64-bit Pi OS or `arm-linux-gnueabihf` for 32-bit Pi OS.
 
 ## Repository contents
