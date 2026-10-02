@@ -1,6 +1,7 @@
 # YDLIDAR HP60C camera test
 
-This is a standalone Linux test directory for the YDLIDAR HP60C depth camera.
+This is a standalone Linux test directory for the YDLIDAR HP60C depth camera,
+including Raspberry Pi 4B running Raspberry Pi OS.
 It detects the camera, downloads and builds the camera SDK on first use, and
 opens live RGB and color-mapped depth views.
 
@@ -27,7 +28,8 @@ When the program reports that the camera is streaming, use:
 - `l` — print the active camera configuration
 - `q` — quit
 
-Snapshots are written under `vendor/linux_ros/linux/build-hp60c/`.
+Snapshots are written under the architecture-specific build directory, for
+example `vendor/linux_ros/linux/build-hp60c-aarch64-linux-gnu/` on 64-bit Pi OS.
 
 ## Supported camera output
 
@@ -75,6 +77,7 @@ not performed automatically because it modifies system configuration.
 ## Requirements
 
 - Linux on x86_64, aarch64, or arm-linux-gnueabihf
+- Raspberry Pi 4B with either 64-bit Raspberry Pi OS or 32-bit Raspberry Pi OS
 - CMake, a C++ compiler, X11, and OpenCV development files
 - `curl`, `xz`, `tar`, `patch`, `lsusb`, and `v4l2-ctl`
 - A graphical session (`DISPLAY` or `WAYLAND_DISPLAY`) for live windows
@@ -82,14 +85,19 @@ not performed automatically because it modifies system configuration.
 Arch Linux:
 
 ```bash
-sudo pacman -S --needed cmake gcc opencv libusb usbutils v4l-utils curl xz patch
+sudo pacman -S --needed cmake gcc binutils opencv libusb usbutils v4l-utils curl xz patch
 ```
 
 Ubuntu/Debian:
 
 ```bash
-sudo apt install cmake g++ libopencv-dev libusb-1.0-0 usbutils v4l-utils curl xz-utils patch
+sudo apt install cmake g++ binutils libopencv-dev libusb-1.0-0 usbutils v4l-utils curl xz-utils patch
 ```
+
+On Raspberry Pi OS, use the packages for the architecture installed on the
+system; no cross-compiler is needed when building directly on the Pi. The
+first build selects the matching vendor libraries automatically:
+`aarch64-linux-gnu` for 64-bit Pi OS or `arm-linux-gnueabihf` for 32-bit Pi OS.
 
 ## Repository contents
 

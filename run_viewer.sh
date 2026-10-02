@@ -3,7 +3,7 @@ set -euo pipefail
 
 script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 source_dir="$script_dir/vendor/linux_ros/linux"
-build_dir="$source_dir/build-hp60c"
+source "$script_dir/platform.sh"
 camera_usb_id="3482:6723"
 
 if [[ -z "${DISPLAY:-}" && -z "${WAYLAND_DISPLAY:-}" ]]; then
@@ -23,20 +23,33 @@ if ! lsusb | grep -qiE "$camera_usb_id|YDLIDAR|Angstrong"; then
     exit 1
 fi
 
+sdk_lib_target=$(get_sdk_lib_target)
+build_dir=$(get_build_dir "$source_dir")
+
 if [[ ! -x "$build_dir/ascamera" ]]; then
     "$script_dir/build.sh"
 fi
 
-compiler_target=$(g++ -dumpmachine)
-library_dir="$source_dir/libs/lib/$compiler_target"
+library_dir="$source_dir/libs/lib/$sdk_lib_target"
 if [[ ! -d "$library_dir" ]]; then
-    case "$(uname -m)" in
-        x86_64) library_dir="$source_dir/libs/lib/x86_64-linux-gnu" ;;
-        aarch64) library_dir="$source_dir/libs/lib/aarch64-linux-gnu" ;;
-        armv7l|armv8l) library_dir="$source_dir/libs/lib/arm-linux-gnueabihf" ;;
-        *) echo "Unsupported machine architecture: $(uname -m)" >&2; exit 1 ;;
-    esac
+    echo "The vendor SDK has no libraries for $sdk_lib_target." >&2
+    exit 1
 fi
+
+if ! command -v readelf >/dev/null 2>&1; then
+    echo "Missing required command: readelf (install binutils)." >&2
+    exit 1
+fi
+
+binary_machine=$(readelf -h "$build_dir/ascamera" | awk -F: '/^  Machine:/ {gsub(/^[[:space:]]+/, "", $2); print $2}')
+case "$sdk_lib_target:$binary_machine" in
+    x86_64-linux-gnu:*X86-64*|aarch64-linux-gnu:*AArch64*|arm-linux-gnueabihf:*ARM*) ;;
+    *)
+        echo "Executable architecture does not match $sdk_lib_target: $binary_machine" >&2
+        echo "Run ./build.sh to rebuild for this machine." >&2
+        exit 1
+        ;;
+esac
 
 echo "Starting HP60C camera viewer."
 echo "After 'camera start streaming' appears, press d to show RGB and depth."
